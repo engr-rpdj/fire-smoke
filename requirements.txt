@@ -1,0 +1,9 @@
+# Fire & Smoke Detection System - Python Requirements
+# Install with: pip install -r requirements.txt --break-system-packages
+
+# Computer Vision and AI
+opencv-python>=4.8.0
+ultralytics>=8.0.0
+# Optional but recommended
+numpy>=1.24.0
+pillow>=10.0.0

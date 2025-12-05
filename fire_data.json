@@ -1,0 +1,209 @@
+{
+  "cameras": {
+    "1": {
+      "name": "Camera 1 - Visual ML",
+      "type": "visual",
+      "location": "Building A - Warehouse",
+      "latitude": 14.6005,
+      "longitude": 120.985,
+      "status": "offline",
+      "temperature": 22.0,
+      "frame_path": "camera_frames/camera1_live.jpg"
+    },
+    "2": {
+      "name": "Camera 2 - Thermal",
+      "type": "thermal",
+      "location": "Building A - Warehouse",
+      "latitude": 14.601,
+      "longitude": 120.9855,
+      "status": "offline",
+      "temperature": 22.5,
+      "frame_path": "camera_frames/camera2_live.jpg"
+    }
+  },
+  "detections": [
+    {
+      "id": 2,
+      "camera_id": 1,
+      "camera_name": "Camera 1 - Visual ML",
+      "detection_type": "smoke",
+      "confidence": 0.666969358921051,
+      "image_path": "detected_images/camera1_smoke_20251123_122256.jpg",
+      "location": "Building A - Warehouse",
+      "latitude": 14.6005,
+      "longitude": 120.985,
+      "status": "pending",
+      "timestamp": "2025-11-23T12:22:56.089331"
+    },
+    {
+      "id": 1,
+      "camera_id": 1,
+      "camera_name": "Camera 1 - Visual ML",
+      "detection_type": "fire",
+      "confidence": 0.7572182416915894,
+      "image_path": "detected_images/camera1_fire_20251123_120231.jpg",
+      "location": "Building A - Warehouse",
+      "latitude": 14.6005,
+      "longitude": 120.985,
+      "status": "pending",
+      "timestamp": "2025-11-23T12:02:31.560735"
+    }
+  ],
+  "alerts": [],
+  "activity": [
+    {
+      "timestamp": "2025-11-27T17:23:33.375022",
+      "message": "Fire detection system started"
+    },
+    {
+      "timestamp": "2025-11-23T14:50:49.850105",
+      "message": "Fire detection system started"
+    },
+    {
+      "timestamp": "2025-11-23T12:23:49.149611",
+      "message": "Camera 1 - Visual ML stopped"
+    },
+    {
+      "timestamp": "2025-11-23T12:21:51.746883",
+      "message": "Camera 1 - Visual ML started"
+    },
+    {
+      "timestamp": "2025-11-23T12:21:50.403031",
+      "message": "Fire detection system started"
+    },
+    {
+      "timestamp": "2025-11-23T12:21:46.090745",
+      "message": "Camera 1 - Visual ML stopped"
+    },
+    {
+      "timestamp": "2025-11-23T12:17:20.605707",
+      "message": "Camera 1 - Visual ML started"
+    },
+    {
+      "timestamp": "2025-11-23T12:17:18.974228",
+      "message": "Fire detection system started"
+    },
+    {
+      "timestamp": "2025-11-23T12:05:21.708095",
+      "message": "Camera 1 - Visual ML stopped"
+    },
+    {
+      "timestamp": "2025-11-23T12:02:09.166625",
+      "message": "Camera 1 - Visual ML started"
+    },
+    {
+      "timestamp": "2025-11-23T12:02:04.917596",
+      "message": "Fire detection system started"
+    }
+  ],
+  "firefighters": [],
+  "personnel": [
+    {
+      "name": "Admin Johnson",
+      "role": "System Administrator",
+      "type": "admin",
+      "status": "online"
+    },
+    {
+      "name": "Admin Chen",
+      "role": "Operations Manager",
+      "type": "admin",
+      "status": "online"
+    },
+    {
+      "name": "FF Rodriguez",
+      "role": "Fire Chief - Station 1",
+      "type": "firefighter",
+      "status": "online",
+      "station": 1
+    },
+    {
+      "name": "FF Martinez",
+      "role": "Firefighter - Station 1",
+      "type": "firefighter",
+      "status": "online",
+      "station": 1
+    },
+    {
+      "name": "FF Santos",
+      "role": "Firefighter - Station 1",
+      "type": "firefighter",
+      "status": "online",
+      "station": 1
+    },
+    {
+      "name": "FF Reyes",
+      "role": "Firefighter - Station 1",
+      "type": "firefighter",
+      "status": "online",
+      "station": 1
+    },
+    {
+      "name": "FF Cruz",
+      "role": "Firefighter - Station 1",
+      "type": "firefighter",
+      "status": "online",
+      "station": 1
+    },
+    {
+      "name": "FF Bautista",
+      "role": "Firefighter - Station 1",
+      "type": "firefighter",
+      "status": "online",
+      "station": 1
+    },
+    {
+      "name": "FF Garcia",
+      "role": "Fire Chief - Station 2",
+      "type": "firefighter",
+      "status": "online",
+      "station": 2
+    },
+    {
+      "name": "FF Lopez",
+      "role": "Firefighter - Station 2",
+      "type": "firefighter",
+      "status": "online",
+      "station": 2
+    },
+    {
+      "name": "FF Hernandez",
+      "role": "Firefighter - Station 2",
+      "type": "firefighter",
+      "status": "online",
+      "station": 2
+    },
+    {
+      "name": "FF Dela Cruz",
+      "role": "Firefighter - Station 2",
+      "type": "firefighter",
+      "status": "online",
+      "station": 2
+    }
+  ],
+  "stations": [
+    {
+      "id": 1,
+      "name": "Fire Station 1",
+      "latitude": 14.595,
+      "longitude": 120.98,
+      "personnel_count": 6
+    },
+    {
+      "id": 2,
+      "name": "Fire Station 2",
+      "latitude": 14.604,
+      "longitude": 120.99,
+      "personnel_count": 6
+    }
+  ],
+  "stats": {
+    "detections_today": 0,
+    "fire_today": 0,
+    "smoke_today": 0,
+    "avg_response_time": 3.2,
+    "personnel_online": 12,
+    "active_cameras": 0
+  },
+  "last_update": "2025-11-27T17:23:33.375480"
+}

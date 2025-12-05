@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firefighter Alert Receiver</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Subtle animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(233, 69, 96, 0.03) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 70%, rgba(102, 126, 234, 0.03) 0%, transparent 50%);
+            animation: bgMove 20s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes bgMove {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-2%, -2%); }
+        }
+
+        .header {
+            background: linear-gradient(90deg, #0f3460 0%, #16213e 100%);
+            padding: 15px 20px;
+            border-bottom: 3px solid #e94560;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+        }
+
+        .header h1 {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(46, 213, 115, 0.2);
+            border: 2px solid #2ed573;
+            color: #2ed573;
+            animation: glow-green 2s ease-in-out infinite;
+        }
+
+        @keyframes glow-green {
+            0%, 100% { box-shadow: 0 0 5px rgba(46, 213, 115, 0.3); }
+            50% { box-shadow: 0 0 15px rgba(46, 213, 115, 0.5); }
+        }
+
+        .status-badge.alert {
+            background: rgba(233, 69, 96, 0.2);
+            border-color: #e94560;
+            color: #e94560;
+            animation: glow-red 0.5s ease-in-out infinite;
+        }
+
+        @keyframes glow-red {
+            0%, 100% { box-shadow: 0 0 5px rgba(233, 69, 96, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(233, 69, 96, 0.8); }
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Info Bar */
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .info-item span {
+            color: #fff;
+        }
+
+        /* No Alert State */
+        .no-alert {
+            text-align: center;
+            padding: 60px 20px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .no-alert-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(46, 213, 115, 0.3));
+        }
+
+        .no-alert h2 {
+            color: #2ed573;
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .no-alert p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .pulse-ring {
+            display: inline-block;
+            position: relative;
+        }
+
+        .pulse-ring::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            border: 2px solid rgba(46, 213, 115, 0.3);
+            border-radius: 50%;
+            animation: pulse-ring 2s ease-out infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { width: 80px; height: 80px; opacity: 1; }
+            100% { width: 150px; height: 150px; opacity: 0; }
+        }
+
+        /* Active Alert */
+        .alert-active {
+            display: none;
+        }
+
+        .alert-active.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .alert-card {
+            background: linear-gradient(135deg, #e94560 0%, #d63447 100%);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            animation: pulse-border 1s infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .alert-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(233, 69, 96, 0.7), 0 10px 40px rgba(233, 69, 96, 0.3); }
+            50% { box-shadow: 0 0 0 15px rgba(233, 69, 96, 0), 0 10px 40px rgba(233, 69, 96, 0.5); }
+        }
+
+        .alert-icon {
+            font-size: 64px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            animation: bounce 0.5s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .alert-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .alert-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .alert-details {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(10px);
+        }
+
+        .alert-detail-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .alert-detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .alert-detail-row .icon {
+            font-size: 20px;
+            width: 30px;
+            text-align: center;
+        }
+
+        .alert-detail-row .label {
+            color: rgba(255,255,255,0.7);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .alert-detail-row .value {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .alert-time {
+            font-size: 13px;
+            opacity: 0.8;
+            margin-top: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .alert-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-respond {
+            background: #fff;
+            color: #e94560;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-respond:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn-acknowledge {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+
+        .btn-acknowledge:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 25px 0;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .stat-box .value {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-box .label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+            text-transform: uppercase;
+        }
+
+        /* History Section */
+        .history-section {
+            margin-top: 25px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .history-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 10px;
+            border-left: 4px solid #e94560;
+            transition: all 0.2s;
+        }
+
+        .history-item:hover {
+            background: rgba(255,255,255,0.05);
+            transform: translateX(5px);
+        }
+
+        .history-item.responded {
+            border-left-color: #2ed573;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-item .time {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .history-item .type-badge {
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background: rgba(233, 69, 96, 0.2);
+            color: #e94560;
+        }
+
+        .history-item.responded .type-badge {
+            background: rgba(46, 213, 115, 0.2);
+            color: #2ed573;
+        }
+
+        .history-item .location {
+            font-size: 14px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            color: #444;
+            font-size: 12px;
+        }
+
+        /* Floating Buttons */
+        .float-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .float-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .demo-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 10px 16px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.5);
+            color: #fff;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .demo-btn:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.5) 0%, rgba(118, 75, 162, 0.5) 100%);
+            transform: translateY(-2px);
+        }
+
+        .empty-history {
+            text-align: center;
+            padding: 30px;
+            color: #444;
+        }
+
+        .empty-history .icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon">🚒</div>
+            <h1>Firefighter Alert</h1>
+        </div>
+        <div class="status-badge" id="statusBadge">● STANDBY</div>
+    </div>
+
+    <div class="container">
+        <!-- Info Bar -->
+        <div class="info-bar">
+            <div class="info-item">📅 <span id="currentDate">-</span></div>
+            <div class="info-item">🕐 <span id="currentTime">-</span></div>
+            <div class="info-item">🏢 <span>Station 1</span></div>
+        </div>
+
+        <!-- No Alert State -->
+        <div class="no-alert" id="noAlert">
+            <div class="pulse-ring">
+                <div class="no-alert-icon">✅</div>
+            </div>
+            <h2>All Clear</h2>
+            <p>No active alerts. Stay ready for dispatch.</p>
+        </div>
+
+        <!-- Active Alert -->
+        <div class="alert-active" id="alertActive">
+            <div class="alert-card">
+                <div class="alert-icon" id="alertIcon">🔥</div>
+                <div class="alert-title" id="alertTitle">FIRE ALERT</div>
+                <div class="alert-subtitle">Immediate response required</div>
+                <div class="alert-details">
+                    <div class="alert-detail-row">
+                        <div class="icon">📍</div>
+                        <div>
+                            <div class="label">Location</div>
+                            <div class="value" id="alertLocation">-</div>
+                        </div>
+                    </div>
+                    <div class="alert-detail-row">
+                        <div class="icon">🏢</div>
+                        <div>
+                            <div class="label">Area</div>
+                            <div class="value" id="alertArea">-</div>
+                        </div>
+                    </div>
+                    <div class="alert-detail-row">
+                        <div class="icon">📊</div>
+                        <div>
+                            <div class="label">Confidence</div>
+                            <div class="value" id="alertConfidence">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert-time" id="alertTime">⏱️ Received just now</div>
+                <div class="alert-actions">
+                    <button class="btn btn-respond" onclick="respondToAlert()">🚒 Responding</button>
+                    <button class="btn btn-acknowledge" onclick="acknowledgeAlert()">✓ Acknowledge</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-box">
+                <div class="value" id="statResponded">0</div>
+                <div class="label">Responded</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" id="statToday">0</div>
+                <div class="label">Today</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" id="statAvgTime">-</div>
+                <div class="label">Avg Time</div>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div class="history-section">
+            <div class="section-title">📋 Recent Alerts</div>
+            <div id="historyList">
+                <div class="empty-history">
+                    <div class="icon">📭</div>
+                    <p>No recent alerts</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">Fire Detection System v1.0 • Stay Safe</div>
+    </div>
+
+    <button class="float-btn" id="soundToggle" onclick="toggleSound()">🔔</button>
+    <button class="demo-btn" onclick="simulateAlert()">⚡ Test Alert</button>
+
+    <script>
+        let soundEnabled = true;
+        let currentAlert = null;
+        let alertHistory = JSON.parse(localStorage.getItem('ffAlertHistory')) || [];
+
+        const sampleAlerts = [
+            { type: 'fire', location: 'Building A - Warehouse', area: 'Industrial Zone', confidence: '94%' },
+            { type: 'smoke', location: 'Floor 3 - Office Building', area: 'Commercial District', confidence: '87%' },
+            { type: 'fire', location: 'Residential Block 7', area: 'Housing Complex', confidence: '91%' }
+        ];
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        function updateStats() {
+            const responded = alertHistory.filter(a => a.status === 'responded').length;
+            const today = alertHistory.filter(a => new Date(a.time).toDateString() === new Date().toDateString()).length;
+            document.getElementById('statResponded').textContent = responded;
+            document.getElementById('statToday').textContent = today;
+            document.getElementById('statAvgTime').textContent = responded > 0 ? '2.3m' : '-';
+        }
+
+        function playAlertSound() {
+            if (!soundEnabled) return;
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.frequency.value = 800;
+            oscillator.type = 'square';
+            gainNode.gain.value = 0.3;
+            oscillator.start();
+            setTimeout(() => gainNode.gain.value = 0, 200);
+            setTimeout(() => gainNode.gain.value = 0.3, 400);
+            setTimeout(() => gainNode.gain.value = 0, 600);
+            setTimeout(() => gainNode.gain.value = 0.3, 800);
+            setTimeout(() => oscillator.stop(), 1000);
+        }
+
+        function showAlert(alert) {
+            currentAlert = { ...alert, time: new Date().toISOString() };
+            document.getElementById('noAlert').style.display = 'none';
+            document.getElementById('alertActive').classList.add('show');
+            document.getElementById('alertIcon').textContent = alert.type === 'fire' ? '🔥' : '💨';
+            document.getElementById('alertTitle').textContent = alert.type === 'fire' ? 'FIRE ALERT' : 'SMOKE DETECTED';
+            document.getElementById('alertLocation').textContent = alert.location;
+            document.getElementById('alertArea').textContent = alert.area;
+            document.getElementById('alertConfidence').textContent = alert.confidence;
+            document.getElementById('alertTime').textContent = '⏱️ Received just now';
+            const badge = document.getElementById('statusBadge');
+            badge.textContent = '🚨 ALERT';
+            badge.classList.add('alert');
+            playAlertSound();
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
+        }
+
+        function respondToAlert() {
+            if (!currentAlert) return;
+            currentAlert.status = 'responded';
+            alertHistory.unshift(currentAlert);
+            localStorage.setItem('ffAlertHistory', JSON.stringify(alertHistory.slice(0, 20)));
+            alert('🚒 Response confirmed!\n\nDispatch notified.');
+            clearAlert();
+            renderHistory();
+            updateStats();
+        }
+
+        function acknowledgeAlert() {
+            if (!currentAlert) return;
+            currentAlert.status = 'acknowledged';
+            alertHistory.unshift(currentAlert);
+            localStorage.setItem('ffAlertHistory', JSON.stringify(alertHistory.slice(0, 20)));
+            clearAlert();
+            renderHistory();
+            updateStats();
+        }
+
+        function clearAlert() {
+            currentAlert = null;
+            document.getElementById('noAlert').style.display = 'block';
+            document.getElementById('alertActive').classList.remove('show');
+            const badge = document.getElementById('statusBadge');
+            badge.textContent = '● STANDBY';
+            badge.classList.remove('alert');
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            if (alertHistory.length === 0) {
+                list.innerHTML = '<div class="empty-history"><div class="icon">📭</div><p>No recent alerts</p></div>';
+                return;
+            }
+            list.innerHTML = alertHistory.slice(0, 5).map(item => `
+                <div class="history-item ${item.status === 'responded' ? 'responded' : ''}">
+                    <div class="history-header">
+                        <span class="time">${new Date(item.time).toLocaleString()}</span>
+                        <span class="type-badge">${item.status === 'responded' ? '✓ Responded' : '✓ Acknowledged'}</span>
+                    </div>
+                    <div class="location">${item.type === 'fire' ? '🔥' : '💨'} ${item.location}</div>
+                </div>
+            `).join('');
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggle').textContent = soundEnabled ? '🔔' : '🔕';
+        }
+
+        function simulateAlert() {
+            showAlert(sampleAlerts[Math.floor(Math.random() * sampleAlerts.length)]);
+        }
+
+        renderHistory();
+        updateStats();
+    </script>
+</body>
+</html>
